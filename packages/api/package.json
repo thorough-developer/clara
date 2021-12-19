@@ -1,0 +1,45 @@
+{
+  "name": "@clara/api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "ts-node node_modules/bin/tape tests/**/*.spec.ts",
+    "build": "npm run clean && tsc --project tsconfig.json",
+    "clean": "rm -rf lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thorough-developer/clara/packages/api"
+  },
+  "keywords": [
+    "Restana",
+    "0http",
+    "api",
+    "express",
+    "fastify"
+  ],
+  "author": "Christopher Washington <thorough.developer@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "config": "^3.3.6",
+    "node-cron": "^3.0.0",
+    "on-exit-leak-free": "^0.2.0",
+    "pino": "^7.5.1",
+    "reflect-metadata": "^0.1.13",
+    "restana": "^4.9.2",
+    "typedi": "^0.10.0",
+    "typescript": "^4.5.2"
+  },
+  "devDependencies": {
+    "@tsconfig/node14": "^1.0.1",
+    "@types/body-parser": "^1.19.2",
+    "@types/config": "0.0.40",
+    "@types/node": "^16.11.11",
+    "@types/node-cron": "^3.0.0",
+    "@types/pino": "^7.0.5",
+    "@types/tape": "^4.13.2",
+    "lerna": "^4.0.0",
+    "tape": "^5.3.2"
+  }
+}

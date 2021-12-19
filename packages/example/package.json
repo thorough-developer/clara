@@ -1,0 +1,27 @@
+{
+  "name": "@clara/example",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "ts-node application.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@tsconfig/node14": "^1.0.1",
+    "@types/node": "^16.11.12",
+    "@types/pino": "^7.0.5",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.3"
+  },
+  "dependencies": {
+    "@clara/api": "^1.0.0",
+    "@types/node": "^16.11.12",
+    "fast-json-stable-stringify": "^2.1.0",
+    "helmet": "^4.6.0",
+    "pino": "^7.5.1",
+    "pino-pretty": "^7.2.0",
+    "reflect-metadata": "^0.1.13"
+  }
+}

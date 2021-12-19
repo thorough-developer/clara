@@ -1,0 +1,17 @@
+{
+  "name": "@clara/testing",
+  "version": "1.0.0",
+  "description": "Testing library helper for Clara API. Makes testing fun again.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@tsconfig/node14": "^1.0.1"
+  },
+  "dependencies": {
+    "@types/node": "^16.11.12"
+  }
+}

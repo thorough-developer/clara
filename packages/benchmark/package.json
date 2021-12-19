@@ -1,0 +1,19 @@
+{
+  "name": "@clara/benchmark",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Christopher Washington <thorough.developer@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@tsconfig/node14": "^1.0.1",
+    "autocannon": "^7.5.0",
+    "ts-node": "^10.4.0"
+  },
+  "dependencies": {
+    "@types/node": "^16.11.12"
+  }
+}
