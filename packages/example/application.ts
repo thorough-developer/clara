@@ -2,9 +2,9 @@ import 'reflect-metadata';
 
 import http from 'http';
 import pino from 'pino';
-import { ClaraApp, Context, DefaultRoute, ServerRequest, Application, ConfigValue, ServerResponse, LocalSessionContext, SessionContext, Logger, LoggerInterface, Middleware, AbstractMiddleware, AfterResourcesLoaded, ErrorController, HandleError, DefaultController  } from '@clara/api';
+import { ClaraApp, Context, PostConstruct, ServerRequest, Application, ConfigValue, ServerResponse, LocalSessionContext, SessionContext, Logger, LoggerInterface, Middleware, ErrorController, DefaultController  } from '@clara/api';
 import OtherController from './app/other-controller';
-import { ControllerLevelMiddleware, MyController, MyScheduledResource } from './app/random-test';
+import { MyController, MyScheduledResource } from './app/random-test';
 
 const helmet = require("helmet");
 
@@ -24,7 +24,6 @@ export class RootMiddleware {
 @DefaultController()
 class DefaultRouteController {
     handleDefaultRoute(req: ServerRequest, res: ServerResponse) {
-        console.log('in the route here', res.send);
         res.send({iDoNotExist: 'dawg'}, 404);
     };
 }
@@ -44,7 +43,7 @@ class ErrorHandlerController {
         });
     }
 }
-const story = http.createServer();
+
 
 const logger = pino({
     base: {
@@ -61,7 +60,7 @@ const logger = pino({
         OtherController
     ],
 })
-class MyContext implements AfterResourcesLoaded {
+class MyContext {
 
     @SessionContext()
     myContext!: LocalSessionContext;
@@ -76,6 +75,7 @@ class MyContext implements AfterResourcesLoaded {
         
     }
 
+    @PostConstruct()
     public afterResourcesLoaded() {
         this.logger.info(`apparently java home lives here: ${this.javaHome}`);
     }
@@ -94,8 +94,8 @@ class MyContext implements AfterResourcesLoaded {
        MyScheduledResource
     ],
     middleware: [
-        RootMiddleware,
-        helmet()
+        helmet(),
+        RootMiddleware
     ],
     contexts: [
         MyContext
@@ -103,7 +103,7 @@ class MyContext implements AfterResourcesLoaded {
     defaultRoute: DefaultRouteController,
     errorHandler: ErrorHandlerController
 })
-class MyApplication implements AfterResourcesLoaded {
+class MyApplication {
 
     @SessionContext()
     myContext!: LocalSessionContext;
@@ -118,18 +118,16 @@ class MyApplication implements AfterResourcesLoaded {
         
     }
 
+    @PostConstruct()
     public afterResourcesLoaded() {
         this.logger.info(`apparently java home lives here: ${this.javaHome}`);
     }
 }
 
-const app = ClaraApp.build(MyApplication, {
-    routerCacheSize: 1000,
-    server: story
-});
+const app = ClaraApp.build(MyApplication);
 
-app.start(8888, '0.0.0.0').then((instance: any) => {
-    logger.info(instance.address(), `Listening to requests`);
+app.start(8888, '0.0.0.0').then(() => {
+    console.log(app.routes());
 }).catch((err: Error) => {
     logger.error(err, 'There was an error starting the server.');
 });

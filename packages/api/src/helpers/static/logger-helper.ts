@@ -1,10 +1,9 @@
-import pino from "pino"
-import { ApplicationDefinition, LoggerInterface } from "../.."
-import { Protocol } from "../../types"
+import pino from "pino";
+import { ApplicationDefinition } from "../../types";
 import { setLogger } from "../../utils/logger"
 
 export class LoggerHelper {
-    static isValidLogger(logger: any) {
+    static isValidLogger(logger?: any) {
         if (!logger) {
             return false
         }
@@ -20,13 +19,13 @@ export class LoggerHelper {
         return result;
     }
 
-    static setupLogger<T extends Protocol>(applicationDefinition: ApplicationDefinition<T>) {
+    static setupLogger(applicationDefinition: ApplicationDefinition) {
         const { useLogger } = applicationDefinition;
 
-        if (useLogger && (LoggerHelper.isValidLogger(applicationDefinition.useLogger) || typeof useLogger === 'object')) {
+        if (LoggerHelper.isValidLogger(applicationDefinition.useLogger)) {
             setLogger(useLogger);
         } else {
-            setLogger(pino());
+            setLogger(pino(useLogger || {}));
         }
     }
 }

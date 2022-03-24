@@ -1,0 +1,20 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "display": "Node 14",
+  
+    "compilerOptions": {
+      "outDir": "dist",
+      "lib": ["es2020"],
+      "module": "commonjs",
+      "target": "es2020",
+      "types": ["reflect-metadata", "node", "node-cron", "pino"],
+      "strict": true,
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "**/*.spec.ts"]
+  }

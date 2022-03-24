@@ -1,14 +1,11 @@
-import restana, { Protocol } from "restana";
 import { ControllerDefinition, Type, RouteDefinition, RouteHandler, DefaultRoute, HandleError } from "../types";
 import { Service } from "./service";
 
 export function Controller(controllerDefinition?: ControllerDefinition) {
-
     return function (target: any) {
         Reflect.defineMetadata('controller', controllerDefinition, target);
         Service()(target);
     }
-
 }
 
 export function DefaultController() {
@@ -25,9 +22,9 @@ export function ErrorController() {
 
 
 export function Route(routeDefinition: RouteDefinition) {
-    return function<T extends Protocol> (target: any,
+    return function (target: any,
         propertyKey: string,
-        descriptor: TypedPropertyDescriptor<RouteHandler<T>>): TypedPropertyDescriptor<RouteHandler<T>>  {
+        descriptor: TypedPropertyDescriptor<RouteHandler>): TypedPropertyDescriptor<RouteHandler>  {
         Reflect.defineMetadata('route', {
             routeDefinition,
             propertyKey,

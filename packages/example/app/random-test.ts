@@ -1,4 +1,4 @@
-import { ScheduledTask, ScheduleResource, ServerResponse, Protocol, Service, Resource, Middleware, Controller, Route, SessionContext, LocalSessionContext, LoggerInterface, Logger, ServerRequest } from '@clara/api';
+import { ScheduledTask, ScheduleResource, ServerResponse, Service, Resource, Middleware, Controller, Route, SessionContext, LocalSessionContext, LoggerInterface, Logger, ServerRequest } from '@clara/api';
 
 @ScheduleResource()
 export class MyScheduledResource {

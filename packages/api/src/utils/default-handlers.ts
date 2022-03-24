@@ -1,19 +1,19 @@
 import { DefaultController, ErrorController, Logger } from "../decorators";
-import { DefaultRoute, LoggerInterface, Protocol, ServerResponse, ServerRequest, VersionHandler } from "../types";
+import { DefaultRoute, LoggerInterface, ServerResponse, ServerRequest, VersionHandler } from "../types";
 
 export const defaultVersionHandler: VersionHandler = (req: ServerRequest) => {
     return req.headers['version'] || 'default';
 }
 
 @ErrorController() 
-export class DefaultErrorHandler<T extends Protocol> {
+export class DefaultErrorHandler {
     
     @Logger({
         name: 'DefaultErrorHandler'
     })
     logger!: LoggerInterface;
 
-    public handleError(err: Error, req: ServerRequest<T>, res: ServerResponse<T>): void | Promise<unknown> {
+    public handleError(err: Error, req: ServerRequest, res: ServerResponse): void | Promise<unknown> {
         const message = 'There was an uncaught error on the server.';
         this.logger.error(err, message);
         res.statusCode = 500;
@@ -25,9 +25,8 @@ export class DefaultErrorHandler<T extends Protocol> {
 }
 
 @DefaultController()
-export class DefaultRouteController<T extends Protocol> {
-    handleDefaultRoute(req: ServerRequest<T>, res: ServerResponse<T>): void | Promise<unknown>{
-        console.log('in the route here', res.send);
+export class DefaultRouteController {
+    handleDefaultRoute(req: ServerRequest, res: ServerResponse): void | Promise<unknown>{
         
         res.statusCode = 404;
         res.send({
@@ -39,6 +38,6 @@ export class DefaultRouteController<T extends Protocol> {
 
 let requestId = 1;
 
-export const defaultRequestIdHandler = <T extends Protocol = Protocol.HTTP>(req: ServerRequest<T>): string | number=> {
+export const defaultRequestIdHandler = (req: ServerRequest): string | number=> {
     return requestId++;
 }

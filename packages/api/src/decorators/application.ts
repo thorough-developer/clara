@@ -1,157 +1,79 @@
 import claraService = require('restana');
-import {  Service } from '.';
 import { getLogger } from '../utils/logger';
-import { ApplicationDefinition,ContextDefinition, Server, ServiceOptions, Protocol, HandleError, DefaultRoute } from '../types';
-import { ApplicationClaraMiddlewareHelper } from '../helpers/application-clara-middleware-helper';
-import { ApplicationRouteInterceptorHelper } from '../helpers/application-route-interceptor-handler';
-import { ApplicationResourceLoaderHelper } from '../helpers/resource-loader-helper';
+import {  ApplicationDefinition,ContextDefinition } from '../types';
 import { LoggerHelper } from '../helpers/static/logger-helper';
-import Container from 'typedi';
+import { Service as DecoratorService } from 'typedi';
 import { mergeApplicationDefaults } from '../utils/application-defaults';
+import { addControllerMiddlewareToService, addMiddlwareToService, addRouteToService, getControllerMiddlewarePathList, getMiddlewarePathList, getRouteMiddleware, getRoutesFromController, getService, loadContexts, loadControllers, loadMiddlewares } from '../utils';
+import { posix } from 'path';
 
-export function isValidService(service: any) {
-    let result = true;
+export function appSetup(userDefinedApplicationDefinition: ApplicationDefinition | ContextDefinition) {
 
-    
-    const methods = [
-        'getRouter',
-        'newRouter',
-        'errorHandler',
-        'getServer',
-        'getConfigOptions',
-        'use',
-        'handle',
-        'start',
-        'close'
-    ];
-
-    for (let i = 0; i < methods.length; i += 1) {
-        if (!service[methods[i]] || typeof service[methods[i]] !== 'function') {
-            result = false;
-            break;
-        }
-    }
-    return result;
-}
-
-
-export function appSetup<P extends Protocol = Protocol.HTTP>(userDefinedApplicationDefinition: ApplicationDefinition<P> | ContextDefinition<P>) {
-
-    const applicationDefinition = mergeApplicationDefaults<P>(userDefinedApplicationDefinition);
+    const applicationDefinition = mergeApplicationDefaults(userDefinedApplicationDefinition);
 
     return function <T extends { new(...args: any[]): {} }>(constructor: T) {
         class app extends constructor {
-            service!: claraService.Service<P>;
-            applicationResourceLoaderHelper!: ApplicationResourceLoaderHelper<P>;
-            applicationClaraMiddlewareHelper!: ApplicationClaraMiddlewareHelper<any>;
-            applicationRouteInterceptorHelper!: ApplicationRouteInterceptorHelper<any>;
-
-            init(serverOptions: any, rootPath?: string) {
+            
+            init(service?: any, rootPath?: string) {
                 
-                const path = <any>rootPath || '/';
-                const finalRootPath = (path + applicationDefinition.rootPath || '/').replace(/(\/)\/+/g, "$1");
+                const logger = <any>getLogger();
 
-                let isContext = true;
+                const contextRootPath = posix.join(rootPath || '/', applicationDefinition.rootPath);
 
-                let service;
-                if (isValidService(serverOptions)) {
-                    service = serverOptions;
-                } else {
-                    service = this.createService(serverOptions);
+                const myService = service ? 
+                    service:
+                    getService(logger, applicationDefinition);
 
-                    isContext = false;
-                }
+                
+                addMiddlwareToService(
+                    getMiddlewarePathList(
+                        loadMiddlewares(applicationDefinition.middleware),
+                        contextRootPath
+                    ),
+                    myService
+                );
 
-                this.applicationResourceLoaderHelper = this.getApplicationResourceLoaderHelper(service); 
-                this.applicationClaraMiddlewareHelper = this.getApplicationClaraMiddlewareHelper(service);
-                this.applicationRouteInterceptorHelper = this.getApplicationRouteInterceptorHelper(service);
+                const controllers = loadControllers(applicationDefinition, contextRootPath);
 
-                if (!isContext) {
-                    this.loadClaraMiddlewareHelper(service);
+                addControllerMiddlewareToService(
+                    getControllerMiddlewarePathList(controllers),
+                    myService
+                );
 
-                    this.activateRouteInterceptor(service);
-                }
+                controllers.forEach((controller) => {
+                    const routes = getRoutesFromController(controller);
 
+                    routes.forEach((routeInformation) => {
+                        addRouteToService(
+                            getRouteMiddleware(routeInformation),
+                            routeInformation,
+                            myService
+                        );
+                    });
 
-                this.loadResources(service, finalRootPath);
+                    routes.clear();
+                });
 
-                this.loadContexts(service, finalRootPath);
+                controllers.clear();
 
-                return service;
+                loadContexts(applicationDefinition, myService, contextRootPath);
+
+                
+                return myService;
                 
             }
             
-            createService(serverOptions: ServiceOptions<P>): any {
-                const defaultRoute = applicationDefinition!.defaultRoute;
-                const errorHandler = applicationDefinition!.errorHandler;
-                const routerCacheSize = serverOptions?.routerCacheSize;
-                const prioRequestsProcessing= serverOptions?.prioRequestsProcessing;
-                const server = serverOptions?.server;
-
-                const impelementedErrorHandler = <HandleError<P>>Container.get(errorHandler);
-                const implementedDefaultRoute = <DefaultRoute<P>>Container.get(defaultRoute);
-
-                const service = <any> claraService({
-                        routerCacheSize,
-                        server,
-                        prioRequestsProcessing,
-                        errorHandler: <any>impelementedErrorHandler.handleError.bind(impelementedErrorHandler),
-                        defaultRoute: <any>implementedDefaultRoute.handleDefaultRoute.bind(implementedDefaultRoute)
-                    });
-                return service;
-            }
-
-            loadContexts(service: claraService.Service<P>, rootPath: string) {
-                for (const Context of applicationDefinition?.contexts || []) {
-                    const app: any = Container.get(Context);
-                    app.init(service, rootPath);
-                }
-            }
-
-            loadResources(service: claraService.Service<P>, rootPath: string){
-                this.applicationResourceLoaderHelper.loadResources(rootPath);
-            }
-
-            loadClaraMiddlewareHelper(service: claraService.Service<P>) {
-                this.applicationClaraMiddlewareHelper.initMiddleware();
-            }
-
-            activateRouteInterceptor(service: claraService.Service<P>){
-                this.applicationRouteInterceptorHelper.interceptLookup();
-            }
-
-            getApplicationClaraMiddlewareHelper(service: claraService.Service<P>): ApplicationClaraMiddlewareHelper<any> {
-                return new ApplicationClaraMiddlewareHelper<P>({
-                    service,
-                    logger: <any>getLogger()
-                });
-            }
-
-            getApplicationRouteInterceptorHelper(service: claraService.Service<P>): ApplicationRouteInterceptorHelper<any> {
-                return new ApplicationRouteInterceptorHelper<P>({
-                    service,
-                    logger: <any>getLogger(),
-                    applicationDefinition: <any>applicationDefinition
-                });
-            }
-
-            getApplicationResourceLoaderHelper(service: claraService.Service<P>) {
-                return new ApplicationResourceLoaderHelper<P>({
-                    service,
-                    logger: <any>getLogger(),
-                    applicationDefinition: <any>applicationDefinition
-                });
-            }
         }
-        Service()(app);
+        DecoratorService()(app);
         return app;
     }
 }
 
-export function Context<P extends Protocol = Protocol.HTTP> (contextDefinition: ContextDefinition) {
+export function Context (contextDefinition: ContextDefinition) {
     return appSetup(contextDefinition);
 }
-export function Application<P extends Protocol = Protocol.HTTP>(applicationDefinition: ApplicationDefinition<P>) {
+
+export function Application(applicationDefinition: ApplicationDefinition) {
     
     // needs to happen because an Application can get an injected logger
     LoggerHelper.setupLogger(applicationDefinition);

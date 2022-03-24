@@ -7,3 +7,4 @@ export * from './config-value';
 export * from './session-context';
 export * from './logger';
 export * from './application';
+export * from './post-construct';

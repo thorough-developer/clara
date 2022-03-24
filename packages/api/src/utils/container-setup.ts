@@ -1,14 +1,19 @@
 import Container from "typedi";
 
 const alreadyLoaded:any[] = [];
+let alreadyLoadedIndex = 0;
 
 export const handleResource = (resource: any) => {
-    if (!alreadyLoaded.includes(resource.constructor)) {
-        if (resource.afterResourcesLoaded) {
-            resource.afterResourcesLoaded();
-        }
+    const target = resource.constructor;
+    if (!alreadyLoaded.includes(target)) {
+        const targetProto = target.prototype;
+        Object.getOwnPropertyNames(targetProto).forEach((method: string) => {
+            if((Reflect.hasOwnMetadata('postConstruct', targetProto, method))) {
+                resource[method]();
+            }
+        });
     }
-    alreadyLoaded.push(resource.constructor);
+    alreadyLoaded[alreadyLoadedIndex++] = target;
 };
 
 export const Handler = {
@@ -17,7 +22,7 @@ export const Handler = {
         
         if (Array.isArray(resources)) {
             for (const resource of resources) {
-                handleResource(resources);
+                handleResource(resource);
             }
         } else {
             handleResource(resources);
